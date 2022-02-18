@@ -17,21 +17,25 @@ destination_server="Please check your ~/.ssh/config and provide server name or i
 user="my_user"
 backup_date=$(date +%b-%d-%y)
 
-echo "We will do backup for following directories: ${backup_directories[@]}"
+echo "We will do backup for following directories: ${backup_directories[*]}"
 
 for val in "${backup_directories[@]}"; do
-  sudo tar -Pczf /tmp/$val-$backup_date.tar.gz $val
+  sudo tar -Pczf /tmp/"$val"-"$backup_date".tar.gz "$val"
   if [ $? -eq 0 ]; then
       echo "$val backup has been done successfully."
     else
       echo "Something went wrong when we try to make backup of $val"
   fi
-  scp /tmp$val-$backup_date.tar.gz $user@$destination_server:$destination_directory
+  scp /tmp"$val"-"$backup_date".tar.gz $user@"$destination_server":"$destination_directory"
   if [ $? -eq 0 ]; then
       echo "$val has been migrated successfully."
+      sudo rm /tmp"$val"-"$backup_date".tar.gz
+      if [ $? -eq 0 ]; then
+        echo "$val has benn removed from temporary folder."
+      else
+        echo "I can't delete $val please delete it manually..."
+      fi
   else
       echo "Something went wrong when we try to migrate data - $val to $destination_server"
   fi
 done
-
-sudo rm /tmp/*.gzecho "Backup has been done successfully."
